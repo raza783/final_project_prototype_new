@@ -1,43 +1,57 @@
 import streamlit as st
 import pandas as pd
 import plotly.express as px
-import time
 
-# הגדרת תצוגת המערכת
+# יצירת משתני נתונים בסביבת `session_state`
+if "projects_data" not in st.session_state:
+    st.session_state.projects_data = pd.DataFrame({
+        "פרויקט": ["A", "B", "C"],
+        "סטטוס": ["ממתין לרישוי", "בתהליך רישוי", "התקנה"],
+        "מסמכים": [2, 5, 3],
+        "תשלומים": ["לא שולם", "שולם", "שולם"],
+        "שביעות רצון": [6.5, 7.8, 8.2],
+        "זמן ביצוע (שבועות)": [8, 7, 9]
+    })
+
+if "requests_data" not in st.session_state:
+    st.session_state.requests_data = []
+
+if "users" not in st.session_state:
+    st.session_state.users = {"admin": "admin123"}  # אחסון משתמשים בסיסי
+
 st.set_page_config(page_title="הבית הירוק - מערכת ניהול", layout="wide")
 
 st.markdown("<h1 style='text-align: center; color: #2ecc71;'>מערכת ניהול - הבית הירוק</h1>", unsafe_allow_html=True)
 
-# פונקציה ראשית לניהול משתמשים
 def main():
     choice = st.sidebar.selectbox("בחר סוג התחברות", ["לקוח", "מנהל פרויקטים", "מנהל חברה"])
     username = st.sidebar.text_input("שם משתמש")
     password = st.sidebar.text_input("סיסמא", type="password")
 
-    if username and password:
+    if username and password and username in st.session_state.users and st.session_state.users[username] == password:
         if choice == "לקוח":
             customer_dashboard(username)
         elif choice == "מנהל פרויקטים":
             project_manager_dashboard(username)
         elif choice == "מנהל חברה":
             company_manager_dashboard(username)
+    elif username and password:
+        st.sidebar.error("⚠️ שם משתמש או סיסמה שגויים")
 
-# 🔹 דשבורד לקוח
 def customer_dashboard(username):
     st.subheader(f"שלום, {username} 👋")
-    
-    page = st.sidebar.radio("ניווט", ["עמוד ראשי", "סטטוס פרויקט", "ניהול מסמכים", "אגרות"])
+
+    page = st.sidebar.radio("ניווט", ["עמוד ראשי", "סטטוס פרויקט", "ניהול מסמכים", "אגרות", "פנייה חדשה"])
 
     if page == "עמוד ראשי":
         st.subheader("📌 סטטוס הפרויקט שלך")
-        st.progress(0.6)
-        st.write("סטטוס נוכחי: בתהליך רישוי (60%)")
-        st.toast("🔔 תזכורת: יש להעלות מסמך חיבור עד 5.1!", icon="⚠️")
+        st.write("🔹 פרויקט A - ממתין לרישוי")
+        st.progress(0.3)
 
     elif page == "סטטוס פרויקט":
         st.subheader("🔍 ציר זמן הפרויקט")
         timeline = ["פתיחת פרויקט", "שלב רישוי", "המתנה להתקנה", "התקנה", "חיבור לרשת"]
-        st.selectbox("שלב נוכחי בפרויקט:", timeline, index=1)
+        st.selectbox("שלב נוכחי בפרויקט:", timeline, index=1, disabled=True)
 
     elif page == "ניהול מסמכים":
         st.subheader("📄 ניהול מסמכים")
@@ -49,59 +63,75 @@ def customer_dashboard(username):
 
     elif page == "אגרות":
         st.subheader("💳 תשלומים ואגרות")
-        fees = pd.DataFrame({"אגרה": ["רישום", "היתר", "חיבור"], "סטטוס": ["שולם", "ממתין", "ממתין"]})
-        st.table(fees)
+        st.write("🔹 סטטוס תשלום: לא שולם")
+        if st.button("שלם עכשיו"):
+            st.session_state.projects_data.loc[st.session_state.projects_data["פרויקט"] == "A", "תשלומים"] = "שולם"
+            st.success("✅ התשלום התקבל!")
 
-# 🔹 דשבורד מנהל פרויקטים
+    elif page == "פנייה חדשה":
+        st.subheader("📨 שליחת פנייה")
+        request_text = st.text_area("תוכן הפנייה:")
+        if st.button("שלח פנייה"):
+            st.session_state.requests_data.append({"לקוח": username, "תוכן": request_text, "סטטוס": "פתוח"})
+            st.success("✅ הפנייה נשלחה!")
+
 def project_manager_dashboard(username):
     st.subheader(f"שלום, {username} 👷‍♂️")
 
-    page = st.sidebar.radio("ניווט", ["עמוד ראשי", "פרויקטים פעילים", "ניהול מסמכים", "דוחות"])
+    page = st.sidebar.radio("ניווט", ["עמוד ראשי", "פרויקטים פעילים", "ניהול מסמכים", "דוחות", "פניות", "פתיחת פרויקט חדש"])
 
     if page == "עמוד ראשי":
-        st.subheader("🔔 התראות ניהול פרויקטים")
-        st.write("⚠️ ישנם 2 פרויקטים בעיכוב!")
+        st.subheader("📌 סטטוס כללי של הפרויקטים")
+        st.progress(0.6)
 
     elif page == "פרויקטים פעילים":
-        st.subheader("📌 פרויקטים פעילים")
-        projects_data = pd.DataFrame({"פרויקט": ["פרויקט A", "פרויקט B"], "סטטוס": ["בתהליך רישוי", "ממתין להתקנה"]})
-        st.table(projects_data)
+        st.subheader("📋 פרויקטים פעילים")
+        st.table(st.session_state.projects_data)
 
-        # עדכון סטטוס פרויקט
-        selected_project = st.selectbox("בחר פרויקט לעדכון", projects_data["פרויקט"])
-        new_status = st.selectbox("עדכן סטטוס", ["בתהליך רישוי", "ממתין להתקנה", "הושלם"])
-        if st.button("עדכן סטטוס"):
-            st.success(f"✅ סטטוס {selected_project} עודכן ל- {new_status}")
-            time.sleep(1)
-            st.experimental_rerun()
+    elif page == "ניהול מסמכים":
+        st.subheader("📄 מסמכים שהועלו על ידי לקוחות")
+        st.table(st.session_state.projects_data[["פרויקט", "מסמכים"]])
 
     elif page == "דוחות":
-        st.subheader("📊 דוחות ביצועים")
-        chart_data = pd.DataFrame({"פרויקט": ["A", "B", "C"], "זמן ביצוע (שבועות)": [8, 7, 9]})
-        fig = px.bar(chart_data, x="פרויקט", y="זמן ביצוע (שבועות)", title="משך זמן ביצוע פרויקטים")
+        st.subheader("📊 גרף מסמכים שהועלו לכל פרויקט")
+        fig = px.bar(st.session_state.projects_data, x="פרויקט", y="מסמכים", title="כמות מסמכים שהועלו")
         st.plotly_chart(fig)
 
-# 🔹 דשבורד מנהל חברה
+    elif page == "פניות":
+        st.subheader("📨 פניות לקוחות")
+        for req in st.session_state.requests_data:
+            st.write(f"👤 {req['לקוח']} - {req['תוכן']}")
+            if st.button(f"סגור פנייה - {req['לקוח']}"):
+                req["סטטוס"] = "סגור"
+                st.success("✅ הפנייה נסגרה!")
+
+    elif page == "פתיחת פרויקט חדש":
+        st.subheader("🏗️ יצירת פרויקט חדש")
+        project_name = st.text_input("שם הפרויקט")
+        new_username = st.text_input("שם משתמש חדש")
+        new_password = st.text_input("סיסמה", type="password")
+
+        if st.button("צור פרויקט"):
+            st.session_state.projects_data = st.session_state.projects_data.append(
+                {"פרויקט": project_name, "סטטוס": "בתכנון", "מסמכים": 0, "תשלומים": "לא שולם"}, ignore_index=True)
+            st.session_state.users[new_username] = new_password
+            st.success(f"✅ פרויקט {project_name} נוצר בהצלחה!")
+
 def company_manager_dashboard(username):
     st.subheader(f"שלום, {username} 👨‍💼")
 
-    page = st.sidebar.radio("ניווט", ["עמוד ראשי", "תשלומים", "ניהול מלאי", "ניתוח פרויקטים"])
+    page = st.sidebar.radio("ניווט", ["עמוד ראשי", "תשלומים", "דוחות"])
 
-    if page == "ניהול מלאי":
-        st.subheader("📦 ניהול מלאי לפי מודל EOQ")
-        order_quantity = st.slider("בחר מספר מכולות להזמנה", min_value=1, max_value=10, value=5)
-        total_cost = 1_700_000 - (order_quantity * 30_000)
-        st.write(f"💰 עלות שנתית משוערת: **{total_cost:,.0f}** ₪")
+    if page == "תשלומים":
+        st.subheader("💰 מצב תשלומים בפרויקטים")
+        st.table(st.session_state.projects_data[["פרויקט", "תשלומים"]])
+        if st.button("שלח תזכורת ללקוחות"):
+            st.success("📢 תזכורת תשלום נשלחה לכל הלקוחות!")
 
-        if st.button("חשב הזמנה אופטימלית"):
-            st.success(f"✅ מומלץ להזמין {order_quantity} מכולות לכל הזמנה!")
-
-    elif page == "ניתוח פרויקטים":
-        st.subheader("📊 ניתוח פרויקטים")
-        summary_data = pd.DataFrame({"מדד": ["זמן ממוצע לפרויקט", "שביעות רצון לקוחות", "חיסכון מלאי"],
-                                     "ערך נוכחי": [8, 6.5, "₪ 305,360"],
-                                     "ערך יעד": [6, 8, "₪ 500,000"]})
-        st.table(summary_data)
+    elif page == "דוחות":
+        st.subheader("📊 דוחות עסקיים")
+        fig = px.bar(st.session_state.projects_data, x="פרויקט", y="שביעות רצון", title="שביעות רצון לקוחות")
+        st.plotly_chart(fig)
 
 # הפעלת האפליקציה
 if __name__ == "__main__":
