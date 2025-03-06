@@ -169,34 +169,34 @@ def company_manager_dashboard(username):
                 req["סטטוס"] = "סגור"
                 st.success("✅ הפנייה טופלה!")
     if page == "ניהול מלאי":
-    st.subheader("📦 ניהול מלאי לפי מודל EOQ")
+        st.subheader("📦 ניהול מלאי לפי מודל EOQ")
 
-    # ודא שהערכים קיימים ב-session_state
-    inventory_data = st.session_state.inventory_data
-    inventory_data.setdefault("דרישה שנתית", 1000)
-    inventory_data.setdefault("עלות הזמנה", 30000)
-    inventory_data.setdefault("עלות אחסון", 5000)
+        # ודא שהערכים קיימים ב-session_state
+        inventory_data = st.session_state.inventory_data
+        inventory_data.setdefault("דרישה שנתית", 1000)
+        inventory_data.setdefault("עלות הזמנה", 30000)
+        inventory_data.setdefault("עלות אחסון", 5000)
 
-    # הגדרת נתוני החישוב
-    demand = inventory_data["דרישה שנתית"]
-    order_cost = inventory_data["עלות הזמנה"]
-    holding_cost = inventory_data["עלות אחסון"]
+        # הגדרת נתוני החישוב
+        demand = inventory_data["דרישה שנתית"]
+        order_cost = inventory_data["עלות הזמנה"]
+        holding_cost = inventory_data["עלות אחסון"]
 
-    # חישוב EOQ
-    if holding_cost > 0:
-        eoq = ((2 * demand * order_cost) / holding_cost) ** 0.5
-    else:
-        eoq = 1  # למניעת חלוקה באפס
+        # חישוב EOQ
+        if holding_cost > 0:
+            eoq = ((2 * demand * order_cost) / holding_cost) ** 0.5
+        else:
+            eoq = 1  # למניעת חלוקה באפס
 
-    # תצוגת הנתונים
-    order_quantity = st.slider("בחר מספר מכולות להזמנה", min_value=1, max_value=10, value=int(eoq))
-    total_cost = (demand / order_quantity) * order_cost + (order_quantity / 2) * holding_cost
+        # תצוגת הנתונים
+        order_quantity = st.slider("בחר מספר מכולות להזמנה", min_value=1, max_value=10, value=int(eoq))
+        total_cost = (demand / order_quantity) * order_cost + (order_quantity / 2) * holding_cost
 
-    st.write(f"📦 כמות הזמנה אופטימלית לפי EOQ: **{int(eoq)}** מכולות")
-    st.write(f"💰 עלות כוללת שנתית משוערת: **{total_cost:,.0f}** ₪")
+        st.write(f"📦 כמות הזמנה אופטימלית לפי EOQ: **{int(eoq)}** מכולות")
+        st.write(f"💰 עלות כוללת שנתית משוערת: **{total_cost:,.0f}** ₪")
 
-    if st.button("חשב הזמנה אופטימלית"):
-        st.success(f"✅ מומלץ להזמין {int(eoq)} מכולות לכל הזמנה!")
+        if st.button("חשב הזמנה אופטימלית"):
+            st.success(f"✅ מומלץ להזמין {int(eoq)} מכולות לכל הזמנה!")
      
                 
  
