@@ -8,7 +8,7 @@ if "projects_data" not in st.session_state:
         "פרויקט": ["A", "B", "C"],
         "סטטוס": ["ממתין לרישוי", "בתהליך רישוי", "התקנה"],
         "מסמכים": [2, 5, 3],
-        "תשלומים": ["לא שולם", "שולם", "שולם"],
+        "תשלומים": [1, 3, 2],  # מתוך 3
         "שביעות רצון": [6.5, 7.8, 8.2],
         "זמן ביצוע (שבועות)": [8, 7, 9]
     })
@@ -16,8 +16,11 @@ if "projects_data" not in st.session_state:
 if "requests_data" not in st.session_state:
     st.session_state.requests_data = []
 
-if "users" not in st.session_state:
-    st.session_state.users = {}
+if "document_status" not in st.session_state:
+    st.session_state.document_status = {"A": {"תצהיר עורך דין": False, "אישור רישוי": False, "מסמך חיבור": False}}
+
+if "archive_projects" not in st.session_state:
+    st.session_state.archive_projects = 0
 
 st.set_page_config(page_title="הבית הירוק - מערכת ניהול", layout="wide")
 
@@ -28,7 +31,6 @@ def main():
     username = st.sidebar.text_input("שם משתמש")
     password = st.sidebar.text_input("סיסמא", type="password")
 
-    # כל משתמש יכול להיכנס ללא בדיקה
     if choice == "לקוח":
         customer_dashboard(username)
     elif choice == "מנהל פרויקטים":
@@ -39,7 +41,7 @@ def main():
 def customer_dashboard(username):
     st.subheader(f"שלום, {username} 👋")
 
-    page = st.sidebar.radio("ניווט", ["עמוד ראשי", "סטטוס פרויקט", "ניהול מסמכים", "אגרות", "פנייה חדשה"])
+    page = st.sidebar.radio("ניווט", ["עמוד ראשי", "סטטוס פרויקט", "ניהול מסמכים", "אגרות"])
 
     if page == "עמוד ראשי":
         st.subheader("📌 סטטוס הפרויקט שלך")
@@ -53,70 +55,44 @@ def customer_dashboard(username):
 
     elif page == "ניהול מסמכים":
         st.subheader("📄 ניהול מסמכים")
+        for doc in st.session_state.document_status["A"]:
+            st.write(f"📌 {doc} - {'🟢 הועלה' if st.session_state.document_status['A'][doc] else '🔴 נדרש להעלאה'}")
         with st.form("document_upload_form"):
+            doc_choice = st.selectbox("בחר מסמך להעלאה", list(st.session_state.document_status["A"].keys()))
             uploaded_file = st.file_uploader("📂 העלה מסמך")
             submit_button = st.form_submit_button("✅ שלח")
             if submit_button and uploaded_file:
-                st.success("📌 המסמך הועלה בהצלחה!")
+                st.session_state.document_status["A"][doc_choice] = True
+                st.success(f"📌 {doc_choice} הועלה בהצלחה!")
 
     elif page == "אגרות":
         st.subheader("💳 תשלומים ואגרות")
-        st.write("🔹 סטטוס תשלום: לא שולם")
+        st.write(f"🔹 שילמת {st.session_state.projects_data.loc[0, 'תשלומים']} מתוך 3")
         if st.button("שלם עכשיו"):
-            st.session_state.projects_data.loc[st.session_state.projects_data["פרויקט"] == "A", "תשלומים"] = "שולם"
+            st.session_state.projects_data.loc[0, "תשלומים"] += 1
             st.success("✅ התשלום התקבל!")
-
-    elif page == "פנייה חדשה":
-        st.subheader("📨 שליחת פנייה")
-        request_text = st.text_area("תוכן הפנייה:")
-        if st.button("שלח פנייה"):
-            st.session_state.requests_data.append({"לקוח": username, "תוכן": request_text, "סטטוס": "פתוח"})
-            st.success("✅ הפנייה נשלחה!")
 
 def project_manager_dashboard(username):
     st.subheader(f"שלום, {username} 👷‍♂️")
 
-    page = st.sidebar.radio("ניווט", ["עמוד ראשי", "פרויקטים פעילים", "ניהול מסמכים", "דוחות", "פניות", "פתיחת פרויקט חדש"])
+    page = st.sidebar.radio("ניווט", ["עמוד ראשי", "פרויקטים פעילים", "ניהול מסמכים", "דוחות"])
 
     if page == "עמוד ראשי":
-        st.subheader("📌 סטטוס כללי של הפרויקטים")
-        st.progress(0.6)
-
-    elif page == "פרויקטים פעילים":
-        st.subheader("📋 פרויקטים פעילים")
-        st.table(st.session_state.projects_data)
-
-    elif page == "ניהול מסמכים":
-        st.subheader("📄 מסמכים שהועלו על ידי לקוחות")
-        st.table(st.session_state.projects_data[["פרויקט", "מסמכים"]])
+        st.subheader("📌 סקירת פרויקטים")
+        st.write(f"🔹 פרויקטים בתהליך: {len(st.session_state.projects_data)}")
+        st.write(f"📁 פרויקטים בארכיון: {st.session_state.archive_projects}")
+        for i, row in st.session_state.projects_data.iterrows():
+            st.write(f"📌 {row['פרויקט']} - {row['סטטוס']}")
+            st.progress((i+1) * 0.3)
 
     elif page == "דוחות":
-        st.subheader("📊 גרף מסמכים שהועלו לכל פרויקט")
-        fig = px.bar(st.session_state.projects_data, x="פרויקט", y="מסמכים", title="כמות מסמכים שהועלו")
-        st.plotly_chart(fig)
-
-    elif page == "פניות":
-        st.subheader("📨 פניות לקוחות")
-        for req in st.session_state.requests_data:
-            st.write(f"👤 {req['לקוח']} - {req['תוכן']}")
-            if st.button(f"סגור פנייה - {req['לקוח']}"):
-                req["סטטוס"] = "סגור"
-                st.success("✅ הפנייה נסגרה!")
-
-    elif page == "פתיחת פרויקט חדש":
-        st.subheader("🏗️ יצירת פרויקט חדש")
-        project_name = st.text_input("שם הפרויקט")
-        
-        if st.button("צור פרויקט"):
-            new_project = pd.DataFrame([{
-                "פרויקט": project_name,
-                "סטטוס": "בתכנון",
-                "מסמכים": 0,
-                "תשלומים": "לא שולם"
-            }])
-            
-            st.session_state.projects_data = pd.concat([st.session_state.projects_data, new_project], ignore_index=True)
-            st.success(f"✅ פרויקט {project_name} נוצר בהצלחה!")
+        st.subheader("📊 ניתוח ביצועי פרויקטים")
+        fig1 = px.bar(st.session_state.projects_data, x="פרויקט", y="זמן ביצוע (שבועות)", title="⏳ משך זמן פרויקטים")
+        st.plotly_chart(fig1)
+        fig2 = px.bar(st.session_state.projects_data, x="פרויקט", y="מסמכים", title="📄 מסמכים שהועלו מתוך 6")
+        st.plotly_chart(fig2)
+        fig3 = px.bar(st.session_state.projects_data, x="פרויקט", y="תשלומים", title="💰 אגרות ששולמו מתוך 3")
+        st.plotly_chart(fig3)
 
 def company_manager_dashboard(username):
     st.subheader(f"שלום, {username} 👨‍💼")
@@ -130,9 +106,11 @@ def company_manager_dashboard(username):
             st.success("📢 תזכורת תשלום נשלחה לכל הלקוחות!")
 
     elif page == "דוחות":
-        st.subheader("📊 דוחות עסקיים")
-        fig = px.bar(st.session_state.projects_data, x="פרויקט", y="שביעות רצון", title="שביעות רצון לקוחות")
-        st.plotly_chart(fig)
+        st.subheader("📊 דוחות אסטרטגיים")
+        fig1 = px.bar(st.session_state.projects_data, x="פרויקט", y="זמן ביצוע (שבועות)", title="⏳ משך זמן פרויקטים")
+        st.plotly_chart(fig1)
+        fig2 = px.bar(st.session_state.projects_data, x="פרויקט", y="שביעות רצון", title="💬 שביעות רצון לקוחות")
+        st.plotly_chart(fig2)
 
 # הפעלת האפליקציה
 if __name__ == "__main__":
