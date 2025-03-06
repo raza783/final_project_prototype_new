@@ -2,7 +2,7 @@ import streamlit as st
 import pandas as pd
 import plotly.express as px
 
-# משתנים כלליים למערכת
+# יצירת משתנים גלובליים במערכת
 if "projects_data" not in st.session_state:
     st.session_state.projects_data = pd.DataFrame({
         "פרויקט": ["A", "B", "C"],
