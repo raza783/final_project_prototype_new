@@ -100,7 +100,7 @@ def company_manager_dashboard(username):
 
         order_quantity = st.slider("בחר מספר מכולות להזמנה", min_value=1, max_value=10, value=5)
         total_cost = 1_700_000 - (order_quantity * 30_000)
-        st.write(f"💰 עלות שנתית משוערת: **{total_cost:,.0f} ש"ח**")
+        st.write(f"💰 עלות שנתית משוערת: **{total_cost:,.0f}** ₪")
 
         if st.button("חשב הזמנה אופטימלית"):
             st.success(f"✅ מומלץ להזמין {order_quantity} מכולות לכל הזמנה!")
