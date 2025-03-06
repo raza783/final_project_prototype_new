@@ -2,7 +2,7 @@ import streamlit as st
 import pandas as pd
 import plotly.express as px
 
-# יצירת משתנים גלובליים במערכת
+# משתנים כלליים למערכת
 if "projects_data" not in st.session_state:
     st.session_state.projects_data = pd.DataFrame({
         "פרויקט": ["A", "B", "C"],
@@ -55,14 +55,9 @@ def customer_dashboard(username):
         st.subheader("🔍 ציר זמן הפרויקט")
         st.write(f"🔹 סטטוס נוכחי: {st.session_state.projects_data.loc[0, 'סטטוס']}")
         timeline = ["פתיחת פרויקט", "שלב רישוי", "המתנה להתקנה", "התקנה", "חיבור לרשת"]
-        st.selectbox("שלב נוכחי בפרויקט:", timeline, index=timeline.index(st.session_state.projects_data.loc[0, 'סטטוס']), disabled=True)
-
-    elif page == "אגרות":
-        st.subheader("💳 תשלומים ואגרות")
-        st.write(f"🔹 שילמת {st.session_state.projects_data.loc[0, 'תשלומים']} מתוך 3")
-        if st.button("שלם עכשיו"):
-            st.session_state.projects_data.loc[0, "תשלומים"] += 1
-            st.success("✅ התשלום התקבל!")
+        current_status = st.session_state.projects_data.loc[0, 'סטטוס']
+        index = timeline.index(current_status) if current_status in timeline else 0
+        st.selectbox("שלב נוכחי בפרויקט:", timeline, index=index, disabled=True)
 
 # 🔹 דשבורד מנהל פרויקטים
 def project_manager_dashboard(username):
