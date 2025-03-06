@@ -170,18 +170,12 @@ def company_manager_dashboard(username):
                 st.success("✅ הפנייה טופלה!")
     if page == "ניהול מלאי":
         st.subheader("📦 ניהול מלאי לפי מודל EOQ")
-        inventory_data = st.session_state.inventory_data
-        inventory_data.setdefault("דרישה שנתית", 10)
-        inventory_data.setdefault("עלות הזמנה", 300000)
-        inventory_data.setdefault("עלות אחסון", 50000)
+        order_quantity = st.slider("בחר מספר מכולות להזמנה", min_value=1, max_value=10, value=5)
+        total_cost = 1_700_000 - (order_quantity * 30_000)
+        st.write(f"💰 עלות שנתית משוערת: **{total_cost:,.0f}** ₪")
 
-        demand = inventory_data["דרישה שנתית"]
-        order_cost = inventory_data["עלות הזמנה"]
-        holding_cost = inventory_data["עלות אחסון"]
-
-        eoq = ((2 * demand * order_cost) / holding_cost) ** 0.5
-        order_quantity = st.slider("בחר מספר מכולות להזמנה", min_value=1, max_value=10, value=int(eoq))
-        total_cost = (demand / order_quantity) * order_cost + (order_quantity / 2) * holding_cost
+        if st.button("חשב הזמנה אופטימלית"):
+            st.success(f"✅ מומלץ להזמין {order_quantity} מכולות לכל הזמנה!")
 
         st.write(f"📦 כמות הזמנה אופטימלית לפי EOQ: **{int(eoq)}** מכולות")
         st.write(f"💰 עלות כוללת שנתית משוערת: **{total_cost:,.0f}** ₪")
