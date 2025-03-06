@@ -106,9 +106,16 @@ def project_manager_dashboard(username):
     elif page == "פתיחת פרויקט חדש":
         st.subheader("🏗️ יצירת פרויקט חדש")
         project_name = st.text_input("שם הפרויקט")
+        
         if st.button("צור פרויקט"):
-            st.session_state.projects_data = st.session_state.projects_data.append(
-                {"פרויקט": project_name, "סטטוס": "בתכנון", "מסמכים": 0, "תשלומים": "לא שולם"}, ignore_index=True)
+            new_project = pd.DataFrame([{
+                "פרויקט": project_name,
+                "סטטוס": "בתכנון",
+                "מסמכים": 0,
+                "תשלומים": "לא שולם"
+            }])
+            
+            st.session_state.projects_data = pd.concat([st.session_state.projects_data, new_project], ignore_index=True)
             st.success(f"✅ פרויקט {project_name} נוצר בהצלחה!")
 
 def company_manager_dashboard(username):
