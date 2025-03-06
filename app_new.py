@@ -17,7 +17,7 @@ if "requests_data" not in st.session_state:
     st.session_state.requests_data = []
 
 if "users" not in st.session_state:
-    st.session_state.users = {"admin": "admin123"}  # אחסון משתמשים בסיסי
+    st.session_state.users = {}
 
 st.set_page_config(page_title="הבית הירוק - מערכת ניהול", layout="wide")
 
@@ -28,15 +28,13 @@ def main():
     username = st.sidebar.text_input("שם משתמש")
     password = st.sidebar.text_input("סיסמא", type="password")
 
-    if username and password and username in st.session_state.users and st.session_state.users[username] == password:
-        if choice == "לקוח":
-            customer_dashboard(username)
-        elif choice == "מנהל פרויקטים":
-            project_manager_dashboard(username)
-        elif choice == "מנהל חברה":
-            company_manager_dashboard(username)
-    elif username and password:
-        st.sidebar.error("⚠️ שם משתמש או סיסמה שגויים")
+    # כל משתמש יכול להיכנס ללא בדיקה
+    if choice == "לקוח":
+        customer_dashboard(username)
+    elif choice == "מנהל פרויקטים":
+        project_manager_dashboard(username)
+    elif choice == "מנהל חברה":
+        company_manager_dashboard(username)
 
 def customer_dashboard(username):
     st.subheader(f"שלום, {username} 👋")
@@ -108,13 +106,9 @@ def project_manager_dashboard(username):
     elif page == "פתיחת פרויקט חדש":
         st.subheader("🏗️ יצירת פרויקט חדש")
         project_name = st.text_input("שם הפרויקט")
-        new_username = st.text_input("שם משתמש חדש")
-        new_password = st.text_input("סיסמה", type="password")
-
         if st.button("צור פרויקט"):
             st.session_state.projects_data = st.session_state.projects_data.append(
                 {"פרויקט": project_name, "סטטוס": "בתכנון", "מסמכים": 0, "תשלומים": "לא שולם"}, ignore_index=True)
-            st.session_state.users[new_username] = new_password
             st.success(f"✅ פרויקט {project_name} נוצר בהצלחה!")
 
 def company_manager_dashboard(username):
