@@ -17,7 +17,11 @@ if "requests_data" not in st.session_state:
     st.session_state.requests_data = []
 
 if "document_status" not in st.session_state:
-    st.session_state.document_status = {"A": {"תצהיר עורך דין": False, "אישור רישוי": False, "מסמך חיבור": False}}
+    st.session_state.document_status = {
+        "A": {"תצהיר עורך דין": False, "אישור רישוי": False, "מסמך חיבור": False},
+        "B": {"תצהיר עורך דין": True, "אישור רישוי": False, "מסמך חיבור": True},
+        "C": {"תצהיר עורך דין": True, "אישור רישוי": True, "מסמך חיבור": True}
+    }
 
 if "archive_projects" not in st.session_state:
     st.session_state.archive_projects = 0
@@ -75,7 +79,7 @@ def customer_dashboard(username):
 def project_manager_dashboard(username):
     st.subheader(f"שלום, {username} 👷‍♂️")
 
-    page = st.sidebar.radio("ניווט", ["עמוד ראשי", "פרויקטים פעילים", "ניהול מסמכים", "דוחות"])
+    page = st.sidebar.radio("ניווט", ["עמוד ראשי", "פרויקטים פעילים", "ניהול מסמכים", "דוחות", "פתיחת פרויקט חדש"])
 
     if page == "עמוד ראשי":
         st.subheader("📌 סקירת פרויקטים")
@@ -89,10 +93,19 @@ def project_manager_dashboard(username):
         st.subheader("📊 ניתוח ביצועי פרויקטים")
         fig1 = px.bar(st.session_state.projects_data, x="פרויקט", y="זמן ביצוע (שבועות)", title="⏳ משך זמן פרויקטים")
         st.plotly_chart(fig1)
-        fig2 = px.bar(st.session_state.projects_data, x="פרויקט", y="מסמכים", title="📄 מסמכים שהועלו מתוך 6")
-        st.plotly_chart(fig2)
-        fig3 = px.bar(st.session_state.projects_data, x="פרויקט", y="תשלומים", title="💰 אגרות ששולמו מתוך 3")
-        st.plotly_chart(fig3)
+
+    elif page == "פתיחת פרויקט חדש":
+        st.subheader("🏗️ יצירת פרויקט חדש")
+        project_name = st.text_input("שם הפרויקט")
+        if st.button("צור פרויקט"):
+            new_project = pd.DataFrame([{
+                "פרויקט": project_name,
+                "סטטוס": "בתכנון",
+                "מסמכים": 0,
+                "תשלומים": 0
+            }])
+            st.session_state.projects_data = pd.concat([st.session_state.projects_data, new_project], ignore_index=True)
+            st.success(f"✅ פרויקט {project_name} נוצר בהצלחה!")
 
 def company_manager_dashboard(username):
     st.subheader(f"שלום, {username} 👨‍💼")
@@ -102,8 +115,6 @@ def company_manager_dashboard(username):
     if page == "תשלומים":
         st.subheader("💰 מצב תשלומים בפרויקטים")
         st.table(st.session_state.projects_data[["פרויקט", "תשלומים"]])
-        if st.button("שלח תזכורת ללקוחות"):
-            st.success("📢 תזכורת תשלום נשלחה לכל הלקוחות!")
 
     elif page == "דוחות":
         st.subheader("📊 דוחות אסטרטגיים")
