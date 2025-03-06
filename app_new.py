@@ -173,7 +173,6 @@ def company_manager_dashboard(username):
         demand = st.session_state.inventory_data["דרישה שנתית"]
         order_cost = st.session_state.inventory_data["עלות הזמנה"]
         holding_cost = st.session_state.inventory_data["עלות אחסון"]
-
         eoq = ((2 * demand * order_cost) / holding_cost) ** 0.5
         order_quantity = st.slider("בחר מספר מכולות להזמנה", min_value=1, max_value=10, value=int(eoq))
         total_cost = (demand / order_quantity) * order_cost + (order_quantity / 2) * holding_cost
