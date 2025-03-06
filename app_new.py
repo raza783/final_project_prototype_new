@@ -168,7 +168,7 @@ def company_manager_dashboard(username):
             if st.button(f"מענה לפנייה - {req['לקוח']}"):
                 req["סטטוס"] = "סגור"
                 st.success("✅ הפנייה טופלה!")
-  if page == "ניהול מלאי":
+    if page == "ניהול מלאי":
         st.subheader("📦 ניהול מלאי לפי מודל EOQ")
         inventory_data = st.session_state.inventory_data
         inventory_data.setdefault("דרישה שנתית", 1000)
