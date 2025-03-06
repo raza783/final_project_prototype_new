@@ -2,7 +2,7 @@ import streamlit as st
 import pandas as pd
 import plotly.express as px
 
-# משתנים כלליים למערכת
+# יצירת משתנים גלובליים במערכת
 if "projects_data" not in st.session_state:
     st.session_state.projects_data = pd.DataFrame({
         "פרויקט": ["A", "B", "C"],
@@ -45,6 +45,7 @@ def main():
     elif choice == "מנהל חברה":
         company_manager_dashboard(username)
 
+# 🔹 דשבורד לקוח
 def customer_dashboard(username):
     st.subheader(f"שלום, {username} 👋")
 
@@ -52,9 +53,9 @@ def customer_dashboard(username):
 
     if page == "סטטוס פרויקט":
         st.subheader("🔍 ציר זמן הפרויקט")
-        st.write("🔹 סטטוס נוכחי: ממתין לרישוי")
+        st.write(f"🔹 סטטוס נוכחי: {st.session_state.projects_data.loc[0, 'סטטוס']}")
         timeline = ["פתיחת פרויקט", "שלב רישוי", "המתנה להתקנה", "התקנה", "חיבור לרשת"]
-        st.selectbox("שלב נוכחי בפרויקט:", timeline, index=1, disabled=True)
+        st.selectbox("שלב נוכחי בפרויקט:", timeline, index=timeline.index(st.session_state.projects_data.loc[0, 'סטטוס']), disabled=True)
 
     elif page == "אגרות":
         st.subheader("💳 תשלומים ואגרות")
@@ -63,16 +64,13 @@ def customer_dashboard(username):
             st.session_state.projects_data.loc[0, "תשלומים"] += 1
             st.success("✅ התשלום התקבל!")
 
+# 🔹 דשבורד מנהל פרויקטים
 def project_manager_dashboard(username):
     st.subheader(f"שלום, {username} 👷‍♂️")
 
     page = st.sidebar.radio("ניווט", ["פרויקטים פעילים", "ניהול מסמכים", "דוחות", "פניות"])
 
-    if page == "פרויקטים פעילים":
-        st.subheader("📋 רשימת פרויקטים פעילים")
-        st.table(st.session_state.projects_data)
-
-    elif page == "דוחות":
+    if page == "דוחות":
         st.subheader("📊 דוחות ביצוע")
         fig1 = px.bar(st.session_state.projects_data, x="פרויקט", y="זמן ביצוע (שבועות)", title="⏳ משך זמן פרויקטים")
         fig2 = px.bar(st.session_state.projects_data, x="פרויקט", y="מסמכים", title="📄 מסמכים שהועלו מתוך 6")
@@ -81,26 +79,13 @@ def project_manager_dashboard(username):
         st.plotly_chart(fig2)
         st.plotly_chart(fig3)
 
+# 🔹 דשבורד בעל החברה
 def company_manager_dashboard(username):
     st.subheader(f"שלום, {username} 👨‍💼")
 
     page = st.sidebar.radio("ניווט", ["תשלומים", "דוחות", "ניהול מלאי", "פניות"])
 
-    if page == "תשלומים":
-        st.subheader("💰 מצב תשלומים בפרויקטים")
-        for project in st.session_state.projects_data["פרויקט"]:
-            if st.button(f"שלח דרישת תשלום ל-{project}"):
-                st.session_state.payment_requests[project] = True
-                st.success(f"💳 דרישת תשלום נשלחה ל-{project}!")
-
-    elif page == "דוחות":
-        st.subheader("📊 דוחות אסטרטגיים")
-        fig1 = px.bar(st.session_state.projects_data, x="פרויקט", y="זמן ביצוע (שבועות)", title="⏳ משך זמן פרויקטים")
-        fig2 = px.bar(st.session_state.projects_data, x="פרויקט", y="שביעות רצון", title="💬 שביעות רצון לקוחות")
-        st.plotly_chart(fig1)
-        st.plotly_chart(fig2)
-
-    elif page == "ניהול מלאי":
+    if page == "ניהול מלאי":
         st.subheader("📦 ניהול מלאי לפי מודל EOQ")
         order_quantity = st.slider("בחר מספר מכולות להזמנה", min_value=1, max_value=10, value=5)
         total_cost = 1_700_000 - (order_quantity * 30_000)
