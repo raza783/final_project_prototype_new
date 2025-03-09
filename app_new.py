@@ -171,9 +171,9 @@ def company_manager_dashboard(username):
     if page == "ניהול מלאי":
         st.subheader("📦 ניהול מלאי לפי מודל EOQ")
         inventory_data = st.session_state.inventory_data
-        inventory_data.setdefault("דרישה שנתית", 1000)
-        inventory_data.setdefault("עלות הזמנה", 30000)
-        inventory_data.setdefault("עלות אחסון", 5000)
+        inventory_data.setdefault("דרישה שנתית", 10)
+        inventory_data.setdefault("עלות הזמנה", 1150000)
+        inventory_data.setdefault("עלות אחסון", 200000)
 
         demand = inventory_data["דרישה שנתית"]
         order_cost = inventory_data["עלות הזמנה"]
